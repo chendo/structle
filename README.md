@@ -46,7 +46,7 @@ end
 protocol c99 test/test.protocol
 ```
 
-## Programatic
+## Ruby
 
 ```ruby
 # From file or string.
