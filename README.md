@@ -59,7 +59,7 @@ puts Protocol::Language::C99.new.apply(package)
 
 ## TODO
 
-[source](https://github.com/shanna/protocol/issues?labels=enhancement&page=1&state=open)
+[TODO](https://github.com/shanna/protocol/issues?labels=enhancement&page=1&state=open)
 
 ## License
 
