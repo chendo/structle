@@ -1,8 +1,8 @@
 # protocol
 
-[Source](https://github.com/shanna/protocol)
-[Todo](https://github.com/shanna/protocol/issues?labels=enhancement&page=1&state=open)
-[MIT License](https://github.com/shanna/protocol/blob/master/LICENSE)
+* [Source](https://github.com/shanna/protocol)
+* [Todo](https://github.com/shanna/protocol/issues?labels=enhancement&page=1&state=open)
+* [MIT License](https://github.com/shanna/protocol/blob/master/LICENSE)
 
 ## Description
 
