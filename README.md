@@ -44,8 +44,8 @@ end
 
 ## CLI
 
-```ruby
-protocol c99 test/test.protocol
+```bash
+protocol c99 test/test.protocol > test.h
 ```
 
 ## Ruby
