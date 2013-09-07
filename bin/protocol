@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+$: << File.join(File.dirname(__FILE__), '..', 'lib')
+require 'protocol'
+
+# Usage.
+unless ARGV.size == 2
+  usage = Protocol::Template.new.parse <<-'USAGE'
+Generate native code from protocol.
+
+usage: protocol <language> <protocol>
+  language    - Native language to generate.
+  protocol    - The protocol definition.
+
+languages:
+  - data.each do |l|
+    = '%-11s - %s' % [l.language, l.description]
+  USAGE
+
+  puts usage.apply(Protocol::Language.all)
+  exit 0
+end
+
+unless language = Protocol::Language.find(ARGV[0])
+  puts 'ERROR: Unknown language "%s".' % ARGV[0]
+  exit -1
+end
+
+package = Protocol::Package.load(ARGV[1])
+puts language.new.apply(package)
+

@@ -1,0 +1,64 @@
+#pragma once
+
+#ifdef __cplusplus
+  extern "C" {
+#endif
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#define #{constant data.structs.first.namespace, :types} \\
+  - data.structs.each do |type|
+    X(#{constant type.namespace, type.name}, #{snake_case type.namespace, type.name}, #{type type.namespace, type.name}) \\
+
+#define X(constant, name, type) constant,
+typdef enum #{type data.structs.first.namespace, :types} {
+  = constant data.structs.first.namespace, :types
+} #{type data.structs.first.namespace, :types};
+#undef X
+
+- data.types.each do |type|
+  - case type
+  - when Protocol::Enum
+    typedef enum #{type type.namespace, type.name} {
+      - type.members.each do |k, v|
+        = '%s = %s;' % [constant(type.namespace, type.name, k), v]
+    } #{type type.namespace, type.name};
+  - when Protocol::Struct
+    #pragma pack(push, 1)
+    typedef struct #{type type.namespace, type.name} {
+      - type.members.each do |member|
+        - case member
+        - when Protocol::User
+          #{type member.klass.namespace, member.klass.name} #{member.name};
+        - when Protocol::Bytes
+          uint8_t  #{member.name}[#{member.size}];
+        - when Protocol::Bool
+          bool     #{member.name};
+        - when Protocol::Float
+          float    #{member.name};
+        - when Protocol::Double
+          double   #{member.name};
+        - when Protocol::Uint8
+          uint8_t  #{member.name};
+        - when Protocol::Uint16
+          uint16_t #{member.name};
+        - when Protocol::Uint32
+          uint32_t #{member.name};
+        - when Protocol::Uint64
+          uint64_t #{member.name};
+        - when Protocol::Int8
+          int8_t   #{member.name};
+        - when Protocol::Int16
+          int16_t  #{member.name};
+        - when Protocol::Int32
+          int32_t  #{member.name};
+        - when Protocol::Int64
+          int64_t  #{member.name};
+    } #{type type.namespace, type.name};
+    #pragma pack(pop);
+
+#ifdef __cplusplus
+  }
+#endif
