@@ -6,7 +6,7 @@
   - when Protocol::Enum
     module #{class_case type.namespace}::#{type type.name}
       - type.members.each do |k, v|
-        = '%s = %s;' % [constant(type.namespace, type.name, k), v.to_i]
+        = '%s = %s;' % [constant(k), v.to_i]
     end
   - when Protocol::Struct
     class #{class_case type.namespace}::#{type type.name} < ::Struct.new(#{struct_members type.members})
@@ -14,16 +14,21 @@
       
       def self.load string
         result = new(*string.unpack(FORMAT))
-        - type.members.select{|m| m.kind_of?(Protocol::User) and m.klass.kind_of?(Protocol::Struct)}.each do |user|
-          result.#{user.name} = #{class_case user.klass.namespace}::#{type user.klass.name}.load(result.#{user.name})
+        - type.members.each_with_index do |m, i|
+          - if m.kind_of?(Protocol::User) and m.klass.kind_of?(Protocol::Struct)
+            result.#{m.name} = #{class_case m.klass.namespace}::#{type m.klass.name}.load(result.#{m.name})
+          - if m.kind_of?(Protocol::Bool)
+            result.#{m.name} = result.#{m.name} == 1 ? true : false
         result
       end
       
-      def self.dump
+      def dump
         result = to_a
         - type.members.each_with_index do |m, i|
           - if m.kind_of?(Protocol::User) and m.klass.kind_of?(Protocol::Struct)
-            result[#{i}] = self.#{m.name}.dump
+            result[#{i}] = self.#{m.name}.dump unless self.#{m.name}.nil?
+          - if m.kind_of?(Protocol::Bool)
+            result[#{i}] = self.#{m.name} ? 1 : 0
         result.pack(FORMAT)
       end
     end

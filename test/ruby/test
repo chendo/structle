@@ -1,3 +1,42 @@
 #!/usr/bin/env ruby
-require 'minitest'
+root = File.join(File.dirname(__FILE__), '..', '..')
+$: << File.join(root, 'lib')
+$: << File.dirname(__FILE__)
 
+require 'bundler/setup'
+require 'minitest/autorun'
+
+system '%s ruby %s > %s' % [
+  File.join(root, 'bin','protocol'),
+  File.join(root, 'test', 'test.protocol'),
+  File.join(root, 'test', 'ruby', 'test.rb')
+]
+
+require 'test'
+describe 'Protocol' do
+  it 'should dump sub struct' do
+    assert_equal "\babcdef", My::Namespace::SubStruct.new(8, 'abcdef').dump
+  end
+
+  it 'should load sub struct' do
+    assert struct = My::Namespace::SubStruct.load("\babcdef")
+    assert_equal 8,        struct.field_test
+    assert_equal 'abcdef', struct.field_bytes
+  end
+
+  it 'should rout trip all types struct' do
+    input = [My::Namespace::EnumExample::THIS,
+      My::Namespace::SubStruct.new(8, 'abcdef'),
+      'abcdefghijklmnopqrstuvwxyz012345',
+      true, 0.12345, 0.123456789, 1, 2, 3, 4, 5, 6, 7, 8
+    ]
+    assert dump   = My::Namespace::StructExample.new(*input).dump
+    assert output = My::Namespace::StructExample.load(dump).to_a
+
+    # Ignore floats.
+    input.slice!(4, 2)
+    output.slice!(4, 2)
+
+    assert_equal input, output
+  end
+end
