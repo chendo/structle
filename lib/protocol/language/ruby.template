@@ -1,0 +1,23 @@
+= data.structs.first.namespace.map{|ns| "module #{type ns}"}.join($/)
+= data.structs.first.namespace.map{|ns| "end # #{type ns}"}.join($/)
+
+- data.types.each do |type|
+  - case type
+  - when Protocol::Enum
+    module #{class_case type.namespace}::#{type type.name}
+      - type.members.each do |k, v|
+        = '%s = %s;' % [constant(type.namespace, type.name, k), v]
+    end
+  - when Protocol::Struct
+    class #{class_case type.namespace}::#{type type.name} < ::Struct.new(#{struct_members type.members})
+      FORMAT = #{struct_members_format(type.members).dump}.freeze
+      
+      def self.load string
+        new(*string.unpack(FORMAT))
+      end
+      
+      def self.dump
+        to_a.pack(FORMAT)
+      end
+    end
+

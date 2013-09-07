@@ -8,12 +8,12 @@ unless ARGV.size == 2
 Generate native code from protocol.
 
 usage: protocol <language> <protocol>
-  language    - Native language to generate.
-  protocol    - The protocol definition.
+  language     - Native language to generate.
+  protocol     - The protocol definition.
 
 languages:
-  - data.each do |l|
-    = '%-11s - %s' % [l.language, l.description]
+  - data.sort_by(&:language).each do |l|
+    = '%-12s - %s' % [l.language, l.description]
   USAGE
 
   puts usage.apply(Protocol::Language.all)
