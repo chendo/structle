@@ -19,7 +19,7 @@ class Protocol::Language::RubyPortable < Protocol::Language
 
     def struct_format member
       case member
-        when Protocol::User   then member.klass.kind_of?(Protocol::Struct) ? struct_members_format(member.klass) : 'C'
+        when Protocol::User   then member.klass.kind_of?(Protocol::Struct) ? 'a%s' % member.size : 'C'
         when Protocol::Bytes  then 'a%s' % member.size
         when Protocol::Bool   then 'C'
         when Protocol::Float  then 'e'

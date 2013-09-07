@@ -10,6 +10,15 @@ module Protocol
       return unless @package
       [*@package.namespace, @package.name].compact
     end
+
+    def size
+      self.class.size
+    end
+
+    def self.size size = nil
+      @size = size if size
+      @size
+    end
   end
 
   class Branch < Type
@@ -30,6 +39,10 @@ module Protocol
   class User < Type
     attr_reader :klass
 
+    def size
+      klass.size
+    end
+
     def initialize package, name, klass
       super package, name
       @klass = klass
@@ -37,6 +50,8 @@ module Protocol
   end
 
   class Enum < Branch
+    size 1
+
     def initialize package, name, members = {}
       super package, name
       @members = members
@@ -44,7 +59,7 @@ module Protocol
   end
 
   class Bytes < Type
-    attr_accessor :size
+    attr_reader :size
 
     def initialize package, name, size
       super package, name
@@ -52,17 +67,17 @@ module Protocol
     end
   end
 
-  class Bool   < Type; end
-  class Float  < Type; end
-  class Double < Type; end
-  class Uint8  < Type; end
-  class Uint16 < Type; end
-  class Uint32 < Type; end
-  class Uint64 < Type; end
-  class Int8   < Type; end
-  class Int16  < Type; end
-  class Int32  < Type; end
-  class Int64  < Type; end
+  class Bool   < Type; size 1; end
+  class Float  < Type; size 4; end
+  class Double < Type; size 8; end
+  class Uint8  < Type; size 1; end
+  class Uint16 < Type; size 2; end
+  class Uint32 < Type; size 4; end
+  class Uint64 < Type; size 8; end
+  class Int8   < Type; size 1; end
+  class Int16  < Type; size 2; end
+  class Int32  < Type; size 4; end
+  class Int64  < Type; size 8; end
 
   class Struct < Branch
     dsl_method(:bool,   Bool)
@@ -77,6 +92,10 @@ module Protocol
     dsl_method(:uint16, Uint16)
     dsl_method(:uint32, Uint32)
     dsl_method(:uint64, Uint64)
+
+    def size
+      members.inject(0){|sum, m| sum + m.size}
+    end
 
     def method_missing name, *args, &block
       klass = package.members.find{|m| !m.kind_of?(Package) and m.name == name}

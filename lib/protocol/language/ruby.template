@@ -6,18 +6,25 @@
   - when Protocol::Enum
     module #{class_case type.namespace}::#{type type.name}
       - type.members.each do |k, v|
-        = '%s = %s;' % [constant(type.namespace, type.name, k), v]
+        = '%s = %s;' % [constant(type.namespace, type.name, k), v.to_i]
     end
   - when Protocol::Struct
     class #{class_case type.namespace}::#{type type.name} < ::Struct.new(#{struct_members type.members})
       FORMAT = #{struct_members_format(type.members).dump}.freeze
       
       def self.load string
-        new(*string.unpack(FORMAT))
+        result = new(*string.unpack(FORMAT))
+        - type.members.select{|m| m.kind_of?(Protocol::User) and m.klass.kind_of?(Protocol::Struct)}.each do |user|
+          result.#{user.name} = #{class_case user.klass.namespace}::#{type user.klass.name}.load(result.#{user.name})
+        result
       end
       
       def self.dump
-        to_a.pack(FORMAT)
+        result = to_a
+        - type.members.each_with_index do |m, i|
+          - if m.kind_of?(Protocol::User) and m.klass.kind_of?(Protocol::Struct)
+            result[#{i}] = self.#{m.name}.dump
+        result.pack(FORMAT)
       end
     end
 

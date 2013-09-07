@@ -23,7 +23,7 @@ typdef enum #{type data.structs.first.namespace, :types} {
   - when Protocol::Enum
     typedef enum #{type type.namespace, type.name} {
       - type.members.each do |k, v|
-        = '%s = %s;' % [constant(type.namespace, type.name, k), v]
+        = '%s = %d;' % [constant(type.namespace, type.name, k), v.to_i]
     } #{type type.namespace, type.name};
   - when Protocol::Struct
     #pragma pack(push, 1)
