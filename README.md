@@ -1,6 +1,8 @@
 # protocol
 
-[source](https://github.com/shanna/protocol)
+[Source](https://github.com/shanna/protocol)
+[Todo](https://github.com/shanna/protocol/issues?labels=enhancement&page=1&state=open)
+[MIT License](https://github.com/shanna/protocol/blob/master/LICENSE)
 
 ## Description
 
@@ -56,10 +58,6 @@ package = Protocol::Package.new.parse File.read('test/test.protocol')
 # Apply a template to the package tree.
 puts Protocol::Language::C99.new.apply(package)
 ```
-
-## TODO
-
-[TODO](https://github.com/shanna/protocol/issues?labels=enhancement&page=1&state=open)
 
 ## License
 
