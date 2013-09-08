@@ -10,10 +10,10 @@
 
 #define #{constant data.structs.first.namespace, :types} \\
   - data.structs.each do |type|
-    X(#{constant type.namespace, type.name}, #{snake_case type.namespace, type.name}, #{type type.namespace, type.name}) #{type == data.structs.last ? '' : '\\'}
+    X(#{constant type.namespace, type.name}, #{type type.namespace, type.name}) #{type == data.structs.last ? '' : '\\'}
   - end
 
-#define X(constant, name, type) constant,
+#define X(constant, type) constant,
 typedef enum #{type data.structs.first.namespace, :types} {
   = constant data.structs.first.namespace, :types
 } #{type data.structs.first.namespace, :types};

@@ -3,7 +3,7 @@ require 'protocol/language'
 class Protocol::Language::C99 < Protocol::Language
   module Conventions
     include Protocol::Language::Conventions
-    def type *name; snake_case *name, 't' end
+    def type *name; snake_case *name end
   end
 
   language    'c99'
