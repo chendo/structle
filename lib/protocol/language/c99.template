@@ -10,11 +10,11 @@
 
 #define #{constant data.structs.first.namespace, :types} \\
   - data.structs.each do |type|
-    X(#{constant type.namespace, type.name}, #{snake_case type.namespace, type.name}, #{type type.namespace, type.name}) \\
+    X(#{constant type.namespace, type.name}, #{snake_case type.namespace, type.name}, #{type type.namespace, type.name}) #{type == data.structs.last ? '' : '\\'}
   - end
 
 #define X(constant, name, type) constant,
-typdef enum #{type data.structs.first.namespace, :types} {
+typedef enum #{type data.structs.first.namespace, :types} {
   = constant data.structs.first.namespace, :types
 } #{type data.structs.first.namespace, :types};
 #undef X
@@ -22,9 +22,9 @@ typdef enum #{type data.structs.first.namespace, :types} {
 - data.types.each do |type|
   - case type
   - when Protocol::Enum
-    typedef enum #{type type.namespace, type.name} {
+    typedef enum {
       - type.members.each do |k, v|
-        = '%s = %d;' % [constant(type.namespace, type.name, k), v.to_i]
+        = '%s = %d,' % [constant(type.namespace, type.name, k), v.to_i]
       - end
     } #{type type.namespace, type.name};
 
@@ -62,7 +62,7 @@ typdef enum #{type data.structs.first.namespace, :types} {
         - end
       - end
     } #{type type.namespace, type.name};
-    #pragma pack(pop);
+    #pragma pack(pop)
 
   - end
 - end
