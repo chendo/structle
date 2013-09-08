@@ -2,27 +2,32 @@ module Protocol
 
   # Template
   #
-  # HAML-ish templating without the HTML markup so it's useful for code generation.
-  #
   # \A\s*= Code
   # \A\s*- Silent code
   # \A\=   Literal =
   # \A\-   Literal -
   #
   # Template attempts to outdent silent code blocks so both the source and generated output can be correctly
-  # indented. The caveat is both source and output need to use the same indentation style.
+  # indented. The caveats are:
+  #
+  # * Both source and output need to use the same indentation style.
+  # * You can't use multi-line {} blocks (it's poor style anyway)
+  # * You can't have trailing message passing on end keywords.
   #
   # Example:
   #   template = Template.new
   #   template.parse <<-TEMPLATE
   #   - data.each do |v|
   #     = 'value: %s' % v
+  #   - end
   #   TEMPLATE
   #
   #   puts template.apply(%w{foo bar baz})
   #   #=> "value: foo\nvalue: bar\nvalue: baz\n"
   #--
   # TODO: This could be a library/gem on its own.
+  # TODO: The output handling is rough and probably has loads of edge cases.
+  # TODO: There is probably no need for Compiled.
   class Template
     class Compiled
       def initialize file
@@ -50,34 +55,30 @@ module Protocol
         end
     end
 
-    Stack = ::Struct.new(:indent, :close)
-
     CODE         = %r{^\s*(?<!\\)=\s*}
     SILENT_CODE  = %r{^\s*(?<!\\)-\s*}
-    BLOCK_OPEN   = %r{(?:^#{SILENT_CODE}(?<keyword>if|begin|case|unless)\b)|(?:(?<keyword>do|\{)\s*\|\s*[^\|]*\|$)}
-    BLOCK_MIDDLE = %r{^#{SILENT_CODE}(?:else|elsif|rescue|ensure|end|when)}
+    BLOCK_OPEN   = %r{(?:^#{SILENT_CODE}(?<keyword>if|begin|case|unless)\b)|(?:(?<keyword>do)\s*\|\s*[^\|]*\|$)}
+    BLOCK_CLOSE  = %r{^#{SILENT_CODE}(?<keyword>end)\b}
 
     def initialize indent = '  '
-      @indent, @stack = indent, []
+      @indent = indent
     end
 
     def parse source, file = nil
-      compiled = Compiled.new file
-      source.each_line do |line|
+      depth = 0
+      source.each_line.inject(Compiled.new(file)) do |compiled, line|
         margin = line.match(/^\s*/)[0]
         indent = margin.size
 
-        block_close(compiled, indent, line) unless line.match(BLOCK_MIDDLE)
+        depth += 1 if BLOCK_OPEN.match(line)
+        depth -= 1 if BLOCK_CLOSE.match(line)
         case line.chomp!
-          when CODE        then compiled << %q{self << '%%*s%%s' %% [%s, '', (%s).to_s]} % [justify(indent, margin).size, line.sub(CODE, '')]
-          when SILENT_CODE then compiled << justify(indent, line.sub(SILENT_CODE, ''))
-          else                  compiled << %Q{__out__ = <<-__out__\n%s\n__out__\nself << __out__.chomp} % justify(indent, line)
+          when CODE        then compiled << %q{self << '%%*s%%s' %% [%s, '', (%s).to_s]} % [justify(indent, depth, margin).size, line.sub(CODE, '')]
+          when SILENT_CODE then compiled << line.sub(SILENT_CODE, '')
+          else                  compiled << %Q{__out__ = <<-__out__\n%s\n__out__\nself << __out__.chomp} % justify(indent, depth, line)
         end
-        block_open(compiled, indent, line)
+        compiled
       end
-
-      block_close compiled, 0, ''
-      compiled
     end
 
     def self.load file
@@ -85,21 +86,9 @@ module Protocol
     end
 
     protected
-      def justify indent, line
-        @stack.empty? ? line : line.sub(/^#{Regexp.escape(@indent * @stack.size)}/, '')
+      def justify indent, depth, line
+        depth == 0 ? line : line.sub(/^#{Regexp.escape(@indent * depth)}/, '')
       end
-
-      def block_open compiled, indent, line
-        BLOCK_OPEN.match(line) do |match|
-          @stack.push Stack.new(indent, (match[:keyword] == '{' ? '}' : 'end'))
-        end
-      end
-
-      def block_close compiled, indent, line
-        while !@stack.empty? and indent <= @stack.last.indent
-          compiled << justify(indent, @stack.pop.close)
-        end
-      end
-  end
-end
+  end # Template
+end # Protocol
 

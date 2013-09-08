@@ -11,6 +11,7 @@
 #define #{constant data.structs.first.namespace, :types} \\
   - data.structs.each do |type|
     X(#{constant type.namespace, type.name}, #{snake_case type.namespace, type.name}, #{type type.namespace, type.name}) \\
+  - end
 
 #define X(constant, name, type) constant,
 typdef enum #{type data.structs.first.namespace, :types} {
@@ -24,7 +25,9 @@ typdef enum #{type data.structs.first.namespace, :types} {
     typedef enum #{type type.namespace, type.name} {
       - type.members.each do |k, v|
         = '%s = %d;' % [constant(type.namespace, type.name, k), v.to_i]
+      - end
     } #{type type.namespace, type.name};
+
   - when Protocol::Struct
     #pragma pack(push, 1)
     typedef struct #{type type.namespace, type.name} {
@@ -56,9 +59,13 @@ typdef enum #{type data.structs.first.namespace, :types} {
           int32_t  #{member.name};
         - when Protocol::Int64
           int64_t  #{member.name};
+        - end
+      - end
     } #{type type.namespace, type.name};
     #pragma pack(pop);
 
+  - end
+- end
 #ifdef __cplusplus
   }
 #endif

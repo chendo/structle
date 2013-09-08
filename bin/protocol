@@ -14,6 +14,7 @@ usage: protocol <language> <protocol>
 languages:
   - data.sort_by(&:language).each do |l|
     = '%-12s - %s' % [l.language, l.description]
+  - end
   USAGE
 
   puts usage.apply(Protocol::Language.all)
