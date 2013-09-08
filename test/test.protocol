@@ -1,14 +1,11 @@
 package :my do
   package :namespace do
-    enum :enum_example, {this: 1, that: 2, other: 99}
-
     struct :sub_struct do
       uint8 :field_test
       bytes :field_bytes, 6
     end
 
     struct :struct_example do
-      enum_example :field_enum
       sub_struct   :field_sub_struct
       bytes        :field_bytes, 32
       bool         :field_bool
