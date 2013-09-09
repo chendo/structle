@@ -7,36 +7,56 @@ require 'bundler/setup'
 require 'minitest/autorun'
 
 system '%s ruby %s > %s' % [
-  File.join(root, 'bin','protocol'),
+  File.join(root, 'bin','structle'),
   File.join(root, 'test', 'test.protocol'),
   File.join(root, 'test', 'ruby', 'test.rb')
 ]
 
 require 'test'
-describe 'Protocol' do
+describe 'Structle' do
   it 'should dump sub struct' do
-    assert_equal "\babcdef", My::Namespace::SubStruct.new(8, 'abcdef').dump
+    io = StringIO.new
+    assert_equal 7, My::Namespace::SubStruct.new(field_test: 8, field_bytes: 'abcdef').structle_dump(io)
+    io.rewind
+    assert_equal "\babcdef", io.read
   end
 
   it 'should load sub struct' do
-    assert struct = My::Namespace::SubStruct.load("\babcdef")
+    assert struct = My::Namespace::SubStruct.structle_load(StringIO.new("\babcdef"))
     assert_equal 8,        struct.field_test
     assert_equal 'abcdef', struct.field_bytes
   end
 
   it 'should rout trip all types struct' do
-    input = [My::Namespace::EnumExample::THIS,
-      My::Namespace::SubStruct.new(8, 'abcdef'),
-      'abcdefghijklmnopqrstuvwxyz012345',
-      true, 0.12345, 0.123456789, 1, 2, 3, 4, 5, 6, 7, 8
-    ]
-    assert dump   = My::Namespace::StructExample.new(*input).dump
-    assert output = My::Namespace::StructExample.load(dump).to_a
+    input = {
+      field_sub_struct: My::Namespace::SubStruct.new(field_test: 8, field_bytes: 'abcdef'),
+      field_bytes:      'abcdefghijklmnopqrstuvwxyz012345',
+      field_bool:       1,
+      field_float:      0.12345,
+      field_double:     0.123456789,
+      field_uint8:      1,
+      field_uint16:     2,
+      field_uint32:     3,
+      field_uint64:     4,
+      field_int8:       5,
+      field_int16:      6,
+      field_int32:      7,
+      field_int64:      8
+    }
+    io = StringIO.new
+    My::Namespace::StructExample.new(input).structle_dump(io)
 
-    # Ignore floats.
-    input.slice!(4, 2)
-    output.slice!(4, 2)
-
-    assert_equal input, output
+    io.rewind
+    assert output = My::Namespace::StructExample.structle_load(io)
+    input.each do |k, v|
+      if k == :field_sub_struct
+        assert_equal v.field_test,  output.field_sub_struct.field_test
+        assert_equal v.field_bytes, output.field_sub_struct.field_bytes
+      elsif [:field_float, :field_double].include?(k)
+        next
+      else
+        assert_equal v, output.send(k)
+      end
+    end
   end
 end

@@ -1,6 +1,6 @@
-require 'protocol/template'
+require 'structle/template'
 
-module Protocol
+module Structle
   class Language
     module Conventions
       def type     *name; studly_case *name        end

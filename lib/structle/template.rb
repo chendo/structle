@@ -1,4 +1,4 @@
-module Protocol
+module Structle
 
   # Template
   #
@@ -57,7 +57,7 @@ module Protocol
 
     CODE         = %r{^\s*(?<!\\)=\s*}
     SILENT_CODE  = %r{^\s*(?<!\\)-\s*}
-    BLOCK_OPEN   = %r{(?:^#{SILENT_CODE}(?<keyword>if|begin|case|unless)\b)|(?:(?<keyword>do)\s*\|\s*[^\|]*\|$)}
+    BLOCK_OPEN   = %r{(?:^#{SILENT_CODE}(?<keyword>if|begin|case|unless|while|def)\b)|(?:(?<keyword>do)\s*\|\s*[^\|]*\|$)}
     BLOCK_CLOSE  = %r{^#{SILENT_CODE}(?<keyword>end)\b}
 
     def initialize indent = '  '
@@ -71,12 +71,12 @@ module Protocol
         indent = margin.size
 
         depth += 1 if BLOCK_OPEN.match(line)
-        depth -= 1 if BLOCK_CLOSE.match(line)
         case line.chomp!
-          when CODE        then compiled << %q{self << '%%*s%%s' %% [%s, '', (%s).to_s]} % [justify(indent, depth, margin).size, line.sub(CODE, '')]
-          when SILENT_CODE then compiled << line.sub(SILENT_CODE, '')
-          else                  compiled << %Q{__out__ = <<-__out__\n%s\n__out__\nself << __out__.chomp} % justify(indent, depth, line)
+          when CODE        then compiled << %q{%sself << '%%*s%%s' %% [%s, '', (%s).to_s]} % [@indent * depth, justify(indent, depth, margin).size, line.sub(CODE, '')]
+          when SILENT_CODE then compiled << %q{%s%s}                                       % [@indent * depth, line.sub(SILENT_CODE, '')]
+          else                  compiled << %q{%sself << %%Q`%s`}                          % [@indent * depth, justify(indent, depth, line.gsub(/`/, '\`'))]
         end
+        depth -= 1 if BLOCK_CLOSE.match(line)
         compiled
       end
     end
@@ -89,6 +89,6 @@ module Protocol
       def justify indent, depth, line
         depth == 0 ? line : line.sub(/^#{Regexp.escape(@indent * depth)}/, '')
       end
-  end # Template
-end # Protocol
+  end
+end
 

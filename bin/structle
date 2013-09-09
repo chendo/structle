@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+$: << File.join(File.dirname(__FILE__), '..', 'lib')
+require 'structle/def'
+require 'structle/language'
+require 'structle/language/c99'
+require 'structle/language/ruby'
+
+# Usage.
+unless ARGV.size == 2
+  usage = Structle::Template.new.parse <<-'USAGE'
+Generate native code from structle.
+
+usage: structle <language> <structle>
+  language     - Native language to generate.
+  structle     - The structle definition.
+
+languages:
+  - data.sort_by(&:language).each do |l|
+    = '%-12s - %s' % [l.language, l.description]
+  - end
+  USAGE
+
+  puts usage.apply(Structle::Language.all)
+  exit 0
+end
+
+unless language = Structle::Language.find(ARGV[0])
+  puts 'ERROR: Unknown language "%s".' % ARGV[0]
+  exit -1
+end
+
+package = Structle::Def.parse(File.read(ARGV[1]), ARGV[1], 0)
+puts language.new.apply(package)
+
