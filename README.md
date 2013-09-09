@@ -1,12 +1,12 @@
-# protocol
+# structle
 
-* [Source](https://github.com/shanna/protocol)
-* [Todo](https://github.com/shanna/protocol/issues?labels=enhancement&page=1&state=open)
-* [MIT License](https://github.com/shanna/protocol/blob/master/LICENSE)
+* [Source](https://github.com/shanna/structle)
+* [Todo](https://github.com/shanna/structle/issues?labels=enhancement&page=1&state=open)
+* [MIT License](https://github.com/shanna/structle/blob/master/LICENSE)
 
 ## Description
 
-Protocol generates little-endian C compartible structs suitable as a simple,
+Structle generates little-endian C compartible structs suitable as a simple,
 fast wire protocol.
 
 ## Why little-endian?
@@ -14,15 +14,14 @@ fast wire protocol.
 Because x86, x86-64 and bi-endian ARM M3 etc. can all read these structures
 into memory with minimal effort.
 
-## Protocol DSL
+## Generation
+
+### DSL
 
 ```ruby
 package :my do
   package :namespace do
-    enum :enum_example, {this: 1, that: 2, other: 99}
-
     struct :struct_example do
-      enum_example :field_enum
       bytes        :field_bytes, 32
       bool         :field_bool
       float        :field_float
@@ -40,23 +39,26 @@ package :my do
 end
 ```
 
-## Generation
+### Languages.
 
-## CLI
+* Ruby
+* C99
+
+### CLI
 
 ```bash
 protocol c99 test/test.protocol > test.h
 ```
 
-## Ruby
+### Ruby
 
 ```ruby
 # From file or string.
-package = Protocol::Package.load 'test/test.protocol'
-package = Protocol::Package.new.parse File.read('test/test.protocol')
+package = Structle::Def.load 'test/test.protocol'
+package = Structle::Def.new.parse File.read('test/test.protocol')
 
 # Apply a template to the package tree.
-puts Protocol::Language::C99.new.apply(package)
+puts Structle::Language::C99.new.apply(package)
 ```
 
 ## License
