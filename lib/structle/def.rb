@@ -41,11 +41,11 @@ module Structle
       def int64  name;       @members << Field.new(packages, name, :int64,  'q<',         8   ) end
       def string name, size; @members << Field.new(packages, name, :string, 'A%s' % size, size) end
 
-      def method_missing type_name, name, *args, &block
+      def method_missing type_name, *args, &block
         if klass = packages.last.members.find{|m| !m.kind_of?(Package) and m.name == type_name}
           pack = klass.members.inject(''){|m, f| m + f.pack}
           size = klass.members.inject(0){|m, f| m + f.size}
-          return @members << Field.new(klass.packages, name, klass, pack, size)
+          return @members << Field.new(klass.packages, args.first, klass, pack, size)
         end
         super
       end
