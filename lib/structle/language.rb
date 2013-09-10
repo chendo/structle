@@ -13,14 +13,16 @@ module Structle
       end
 
       def snake_case *name
-        name.flatten.compact.map(&:to_s).join('_').gsub(/([^A-Z_])([A-Z]+)/, '\1_\2').gsub(/[_.]+/, '_').downcase
+        name.flatten.compact
+        .map{|n| n.to_s.split('::')}
+        .join('_').gsub(/([^A-Z_])([A-Z]+)/, '\1_\2').gsub(/[_.]+/, '_').downcase
       end
     end
 
-    def apply package
+    def generate
       template = Template.load self.class.template
       template.extend self.class.const_get(:Conventions)
-      template.apply package
+      template.apply Structle
     end
 
     class << self

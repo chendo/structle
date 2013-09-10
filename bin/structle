@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 $: << File.join(File.dirname(__FILE__), '..', 'lib')
-require 'structle/def'
-require 'structle/language'
 require 'structle/language/c99'
-require 'structle/language/ruby'
 
 # Usage.
 unless ARGV.size == 2
@@ -29,6 +26,7 @@ unless language = Structle::Language.find(ARGV[0])
   exit -1
 end
 
-package = Structle::Def.parse(File.read(ARGV[1]), ARGV[1], 0)
-puts language.new.apply(package)
+$:.unshift '.'
+load ARGV[1]
+puts language.new.generate
 

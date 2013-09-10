@@ -10,7 +10,7 @@
 
 #define #{constant data.structs.first.namespace, :types} \\
   - data.structs.each do |type|
-    X(#{constant type.namespace, type.name}, #{variable type.namespace, type.name}) #{type == data.structs.last ? '' : '\\'}
+    X(#{constant type.name}, #{variable type.name}) #{type == data.structs.last ? '' : '\\'}
   - end
 
 #define X(constant, name) constant,
@@ -19,45 +19,41 @@ typedef enum #{type data.structs.first.namespace, :types} {
 } #{type data.structs.first.namespace, :types};
 #undef X
 
-- data.types.each do |type|
-  - case type
-  - when Structle::Def::Struct
-    #pragma pack(push, 1)
-    typedef struct #{type type.namespace, type.name} {
-      - type.members.each do |member|
-        - case member.type
-        - when :bytes, :string
-          uint8_t  #{variable member.name}[#{member.size}];
-        - when :bool
-          bool     #{variable member.name};
-        - when :float
-          float    #{variable member.name};
-        - when :double
-          double   #{variable member.name};
-        - when :uint8
-          uint8_t  #{variable member.name};
-        - when :uint16
-          uint16_t #{variable member.name};
-        - when :uint32
-          uint32_t #{variable member.name};
-        - when :uint64
-          uint64_t #{variable member.name};
-        - when :int8
-          int8_t   #{variable member.name};
-        - when :int16
-          int16_t  #{variable member.name};
-        - when :int32
-          int32_t  #{variable member.name};
-        - when :int64
-          int64_t  #{variable member.name};
-        - else
-          #{type member.namespace, member.type.name} #{variable member.name};
-        - end
+- data.structs.each do |struct|
+  #pragma pack(push, 1)
+  typedef struct #{type struct.name} {
+    - struct.fields.each do |name, type|
+      - if type < Structle::Bytes
+        uint8_t  #{variable name}[#{type.size}];
+      - elsif type < Structle::Bool
+        bool     #{variable name};
+      - elsif type < Structle::Float
+        float    #{variable name};
+      - elsif type < Structle::Double
+        double   #{variable name};
+      - elsif type < Structle::Uint8
+        uint8_t  #{variable name};
+      - elsif type < Structle::Uint16
+        uint16_t #{variable name};
+      - elsif type < Structle::Uint32
+        uint32_t #{variable name};
+      - elsif type < Structle::Uint64
+        uint64_t #{variable name};
+      - elsif type < Structle::Int8
+        int8_t   #{variable name};
+      - elsif type < Structle::Int16
+        int16_t  #{variable name};
+      - elsif type < Structle::Int32
+        int32_t  #{variable name};
+      - elsif type < Structle::Int64
+        int64_t  #{variable name};
+      - elsif type < Structle::Struct
+        #{type type.name} #{variable name};
       - end
-    } #{type type.namespace, type.name};
-    #pragma pack(pop)
+    - end
+  } #{type struct.name};
+  #pragma pack(pop)
 
-  - end
 - end
 #ifdef __cplusplus
   }
