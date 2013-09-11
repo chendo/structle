@@ -12,4 +12,15 @@ module Ns
     field :bar, Structle::Uint64
     field :baz, Structle::Bytes, size: 32
   end
+
+  class BazEnum < Structle::Enum
+    field Structle::Uint8
+    value :FOO
+    value :BAR
+    value :BAZ
+  end
+
+  class Baz < Structle::Struct
+    field :foo, BazEnum
+  end
 end

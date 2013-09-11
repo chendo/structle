@@ -1,8 +1,20 @@
 require 'stringio'
 
 module Structle
-  def self.structs
-    @structs ||= []
+  class << self
+    def namespaces
+      @structs.map(&:namespace).uniq
+    end
+
+    def structs namespace = nil
+      @structs ||= []
+      namespace ? @structs.select{|s| s.namespace == namespace} : @structs
+    end
+
+    def enums namespace = nil
+      @enums ||= []
+      namespace ? @enums.select{|s| s.namespace == namespace} : @enums
+    end
   end
 
   class Type
@@ -53,6 +65,42 @@ module Structle
   class Bytes < Type
     def self.format
       'a%d' % size.to_i
+    end
+  end
+
+  # By default Uint16 type is used.
+  #
+  # Guessing the size based on values is probably going to fall over on some
+  # compilers. Use field with a Structle::Type numeric type.
+  #--
+  # TODO: Type checking? Automatic size guessing?
+  class Enum < Type
+    self.size, self.format = 2, 'S<'
+
+    class << self
+      attr_accessor :values, :type
+
+      def inherited klass
+        Structle.enums << klass if klass.superclass == Enum
+        klass.values = values || {}
+        klass.type   = type || Uint16
+      end
+
+      def field type
+        self.type   = Class.new(type)
+        self.format = type.format
+        self.size   = type.size
+      end
+
+      def namespace
+        name.split('::').map(&:to_sym)[0...-1]
+      end
+
+      def value name, value = nil
+        last = values.values.reverse.reject(&:nil?).first
+        values[name] = (value ||= last.nil? ? 0 : last.to_i + 1)
+        const_set name, value
+      end
     end
   end
 

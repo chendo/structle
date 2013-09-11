@@ -4,56 +4,79 @@
   extern "C" {
 #endif
 
+// Generated code!
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#define #{constant data.structs.first.namespace, :types} \\
-  - data.structs.each do |type|
-    X(#{constant type.name}, #{variable type.name}) #{type == data.structs.last ? '' : '\\'}
+- def field_type name, type
+  - if type    < Structle::Bytes
+      uint8_t  #{variable name}[#{type.size}];
+  - elsif type < Structle::Bool
+      bool     #{variable name};
+  - elsif type < Structle::Float
+      float    #{variable name};
+  - elsif type < Structle::Double
+      double   #{variable name};
+  - elsif type < Structle::Uint8
+      uint8_t  #{variable name};
+  - elsif type < Structle::Uint16
+      uint16_t #{variable name};
+  - elsif type < Structle::Uint32
+      uint32_t #{variable name};
+  - elsif type < Structle::Uint64
+      uint64_t #{variable name};
+  - elsif type < Structle::Int8
+      int8_t   #{variable name};
+  - elsif type < Structle::Int16
+      int16_t  #{variable name};
+  - elsif type < Structle::Int32
+      int32_t  #{variable name};
+  - elsif type < Structle::Int64
+      int64_t  #{variable name};
+  - elsif type < Structle::Enum
+    - field_type name, type.type
+  - elsif type < Structle::Struct
+      #{type type.name} #{variable name};
   - end
+- end
+-
+- Structle.namespaces.each do |ns|
+/*
+    = variable ns
+*/
 
-#define X(constant, name) constant,
-typedef enum #{type data.structs.first.namespace, :types} {
-  = constant data.structs.first.namespace, :types
-} #{type data.structs.first.namespace, :types};
-#undef X
-
-- data.structs.each do |struct|
-  #pragma pack(push, 1)
-  typedef struct #{type struct.name} {
-    - struct.fields.each do |name, type|
-      - if type < Structle::Bytes
-        uint8_t  #{variable name}[#{type.size}];
-      - elsif type < Structle::Bool
-        bool     #{variable name};
-      - elsif type < Structle::Float
-        float    #{variable name};
-      - elsif type < Structle::Double
-        double   #{variable name};
-      - elsif type < Structle::Uint8
-        uint8_t  #{variable name};
-      - elsif type < Structle::Uint16
-        uint16_t #{variable name};
-      - elsif type < Structle::Uint32
-        uint32_t #{variable name};
-      - elsif type < Structle::Uint64
-        uint64_t #{variable name};
-      - elsif type < Structle::Int8
-        int8_t   #{variable name};
-      - elsif type < Structle::Int16
-        int16_t  #{variable name};
-      - elsif type < Structle::Int32
-        int32_t  #{variable name};
-      - elsif type < Structle::Int64
-        int64_t  #{variable name};
-      - elsif type < Structle::Struct
-        #{type type.name} #{variable name};
+  - Structle.enums.each do |enum|
+    #typedef enum #{type enum.name} {
+      - enum.values.each do |k, v|
+        #{constant k} = #{v},
       - end
-    - end
-  } #{type struct.name};
-  #pragma pack(pop)
+    } #{type enum.name};
 
+  - end
+  - structs = Structle.structs(ns)
+  #define #{constant ns, :types} \\
+    - structs.each do |struct|
+      X(#{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
+    - end
+
+  #define X(constant, name) constant,
+  typedef enum #{type ns, :types} {
+    = constant ns, :types
+  } #{type ns, :types};
+  #undef X
+
+  - structs.each do |struct|
+    #pragma pack(push, 1)
+    typedef struct #{type struct.name} {
+      - struct.fields.each do |name, type|
+        - field_type name, type
+      - end
+    } #{type struct.name};
+    #pragma pack(pop)
+
+  - end
 - end
 #ifdef __cplusplus
   }
