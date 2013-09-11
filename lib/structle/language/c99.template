@@ -48,7 +48,7 @@
 */
 
   - Structle.enums.each do |enum|
-    #typedef enum #{type enum.name} {
+    typedef enum #{type enum.name} {
       - enum.values.each do |k, v|
         #{constant k} = #{v},
       - end
