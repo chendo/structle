@@ -15,6 +15,8 @@ describe 'Structle' do
     assert_equal Ns::BazEnum, @it.enums.first
     assert_equal Ns::BazEnum, @it.enums([:Ns]).first
     assert_equal nil,         @it.enums([]).first
+
+    assert_equal Ns::Ns2::BazEnum, @it.enums([:Ns, :Ns2]).first
   end
 
   describe 'Enum' do

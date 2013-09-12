@@ -23,4 +23,17 @@ module Ns
   class Baz < Structle::Struct
     field :foo, BazEnum
   end
+
+  module Ns2
+    class BazEnum < Structle::Enum
+      field Structle::Uint8
+      value :FOOBAR
+      value :BARBAR
+      value :BAZBAR
+    end
+
+    class Baz < Structle::Struct
+      field :foo, BazEnum
+    end
+  end
 end

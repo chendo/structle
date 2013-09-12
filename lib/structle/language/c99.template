@@ -47,7 +47,7 @@
     = variable ns
 */
 
-  - Structle.enums.each do |enum|
+  - Structle.enums(ns).each do |enum|
     typedef enum #{type enum.name} {
       - enum.values.each do |k, v|
         #{constant k} = #{v},
