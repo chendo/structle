@@ -4,7 +4,7 @@ $: << File.join(root, 'lib')
 
 require 'bundler/setup'
 require 'minitest/autorun'
-require_relative '../struct'
+require_relative 'struct'
 
 describe 'Structle' do
   before do
@@ -16,6 +16,10 @@ describe 'Structle' do
     assert_equal Ns::Foo, @it.structs.first
     assert_equal Ns::Foo, @it.structs([:Ns]).first
     assert_equal nil,     @it.structs([]).first
+
+    assert_equal Ns::BazEnum, @it.enums.first
+    assert_equal Ns::BazEnum, @it.enums([:Ns]).first
+    assert_equal nil,         @it.enums([]).first
   end
 
   describe 'Enum' do
