@@ -1,10 +1,5 @@
-#!/usr/bin/env ruby
-root = File.join(File.dirname(__FILE__), '..', '..')
-$: << File.join(root, 'lib')
-
-require 'bundler/setup'
+require_relative 'helper'
 require 'minitest/autorun'
-require_relative 'struct'
 
 describe 'Structle' do
   before do
