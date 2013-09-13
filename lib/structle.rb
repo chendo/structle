@@ -113,12 +113,17 @@ module Structle
       self.class.pack io, self
     end
 
+    def id
+      self.class.id
+    end
+
     class << self
-      attr_accessor :fields
+      attr_accessor :fields, :id
 
       def inherited klass
         Structle.structs << klass if klass.superclass == Struct
         klass.fields = fields || {}  # Suck it 1.8
+        klass.id     = id
       end
 
       def size
@@ -127,6 +132,11 @@ module Structle
 
       def format
         fields.values.map(&:format).join
+      end
+
+      def id struct_id = nil
+        @id = struct_id if struct_id
+        @id
       end
 
       def field name, type, options = {}

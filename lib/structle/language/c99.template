@@ -58,10 +58,10 @@
   - structs = Structle.structs(ns)
   #define #{constant ns, :types} \\
     - structs.each do |struct|
-      X(#{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
+      X(#{struct.id || 0}, #{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
     - end
 
-  #define X(constant, name) constant,
+  #define X(id, constant, name) constant = id,
   typedef enum #{type ns, :types} {
     = constant ns, :types
   } #{type ns, :types};
