@@ -57,8 +57,8 @@
   - end
   - structs = Structle.structs(ns)
   #define #{constant ns, :types} \\
-    - structs.each do |struct|
-      X(#{struct.id || 0}, #{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
+    - structs.select(&:id).each do |struct|
+      X(#{struct.id}, #{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
     - end
 
   #define X(id, constant, name) constant = id,
