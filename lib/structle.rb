@@ -26,7 +26,7 @@ module Structle
       end
 
       def pack io, value
-        io.write value.nil? : "\x00" * size : [value].pack(format)
+        io.write value.nil? ? "\x00" * size : [value].pack(format)
       end
 
       def unpack io
