@@ -70,6 +70,9 @@
   #pragma pack(push, 1)
   - structs.each do |struct|
     typedef struct #{type struct.name} {
+      - if struct.fields.empty?
+        uint8_t _dummy; // C99 "a structure type describes a sequentially allocated nonempty set of member objects"
+      - end
       - struct.fields.each do |name, type|
         - field_type name, type
       - end
