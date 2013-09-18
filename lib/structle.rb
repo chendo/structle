@@ -154,9 +154,8 @@ module Structle
       end
 
       def unpack io
-        fields.inject(new){|s, (n, f)| s.public_send("#{n}=", f.unpack(io)); s}
+        new fields.each_with_object({}){|(n, f), h| h[n] = f.unpack(io)}
       end
     end
   end
 end
-
