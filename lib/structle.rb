@@ -54,7 +54,7 @@ module Structle
     self.format = 'C'
 
     def self.pack io, value
-      super(value.kind_of?(TrueClass) ? 1 : 0)
+      super(io, value.kind_of?(TrueClass) ? 1 : 0)
     end
 
     def self.unpack io
