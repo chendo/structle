@@ -51,7 +51,7 @@ module Structle
   class Double < Type; self.size, self.format = 8, 'E'  end
 
   class Bool < Type
-    self.format = 'C'
+    self.size, self.format = 1, 'C'
 
     def self.pack io, value
       super(io, value.kind_of?(TrueClass) ? 1 : 0)
