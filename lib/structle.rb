@@ -3,7 +3,7 @@ require 'stringio'
 module Structle
   class << self
     def namespaces
-      @structs.map(&:namespace).uniq
+      [@structs, @enums].flatten.map(&:namespace).uniq
     end
 
     def structs namespace = nil
