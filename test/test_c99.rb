@@ -14,8 +14,8 @@ describe 'Structle::Language::C99' do
     typedef struct ns_baz_t {
       uint8_t  foo;
       struct {
-        uint8_t  data[8];
-        uint16_t size;
+        uint8_t data[8];
+        uint8_t size;
       } bar;
     } ns_baz_t;
     EOS
