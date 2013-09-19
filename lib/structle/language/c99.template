@@ -13,6 +13,8 @@
 - def field_type name, type
   - if type    < Structle::Bytes
       uint8_t  #{variable name}[#{type.size}];
+  - elsif type < Structle::String
+      uint8_t  #{variable name}[#{type.size}];
   - elsif type < Structle::Bool
       bool     #{variable name};
   - elsif type < Structle::Float
@@ -57,11 +59,17 @@
   - end
   - structs = Structle.structs(ns)
   #define #{constant ns, :types} \\
-    - structs.select(&:id).each do |struct|
-      X(#{struct.id}, #{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
+    - structs.select(&:complete?).each do |struct|
+      X(#{constant struct.name}, #{variable struct.name})#{struct == structs.select(&:complete?).last ? '' : ' \\'}
     - end
 
-  #define X(id, constant, name) constant = id,
+  - structs = Structle.structs(ns)
+  #define #{constant ns, :incomplete, :types} \\
+    - structs.reject(&:complete?).each do |struct|
+      X(#{constant struct.name}, #{variable struct.name})#{struct == structs.reject(&:complete?).last ? '' : ' \\'}
+    - end
+
+  #define X(constant, name) constant,
   typedef enum #{type ns, :types} {
     = constant ns, :types
   } #{type ns, :types};
@@ -69,14 +77,15 @@
 
   #pragma pack(push, 1)
   - structs.each do |struct|
-    typedef struct #{type struct.name} {
-      - if struct.fields.empty?
-        uint8_t _dummy; // C99 "a structure type describes a sequentially allocated nonempty set of member objects"
-      - end
-      - struct.fields.each do |name, type|
-        - field_type name, type
-      - end
-    } #{type struct.name}; #{structs.last == struct ? '' : "\n"}
+    - if struct.fields.empty?
+      typedef struct #{type struct.name} #{type struct.name};#{structs.last == struct ? '' : "\n"}
+    - else
+      typedef struct #{type struct.name} {
+        - struct.fields.each do |name, type|
+          - field_type name, type
+        - end
+      } #{type struct.name};#{structs.last == struct ? '' : "\n"}
+    - end
   - end
   #pragma pack(pop)
 

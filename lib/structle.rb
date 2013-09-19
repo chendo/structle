@@ -70,6 +70,14 @@ module Structle
     end
   end
 
+  class String < Type
+    def self.format
+      'A%d' % size.to_i
+    end
+  end
+
+  # TODO: Composite Union and Bitfield types.
+
   # By default Uint16 type is used.
   #
   # Guessing the size based on values is probably going to fall over on some
@@ -81,6 +89,10 @@ module Structle
 
     class << self
       attr_accessor :values, :type
+
+      def [] key
+        values[key]
+      end
 
       def inherited klass
         Structle.enums << klass if klass.superclass == Enum
@@ -115,35 +127,28 @@ module Structle
       self.class.pack io, self
     end
 
-    def id
-      self.class.id
-    end
-
     class << self
-      attr_accessor :fields, :id
+      attr_accessor :fields
 
       def inherited klass
         Structle.structs << klass if klass.superclass == Struct
         klass.fields = fields || {}  # Suck it 1.8
-        klass.id     = id
+      end
+
+      def complete?
+        !fields.empty?
       end
 
       def size
-        fields.map(&:size).reduce(:+)
+        fields.values.map(&:size).reduce(:+)
       end
 
       def format
         fields.values.map(&:format).join
       end
 
-      def id struct_id = nil
-        @id = struct_id if struct_id
-        @id
-      end
-
       def field name, type, options = {}
         fields[name] = type.define(options.fetch(:size, type.size), options.fetch(:format, type.format), options)
-        define_singleton_method(name, lambda{ fields[name] })
         attr_accessor name
       end
 
