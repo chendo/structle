@@ -82,17 +82,28 @@ module Structle
     class << self
       def pack io, value
         io.write value.data.ljust(__size.to_i, "\x00")
-        io.write [value.data.bytesize].pack(Uint16.format)
+        io.write [value.data.bytesize].pack(sizetype.format)
       end
 
       def unpack io
-        new(io.read(__size.to_i), io.read(Uint16.size).unpack(Uint16.format).first)
+        new(io.read(__size.to_i), io.read(sizetype.size).unpack(sizetype.format).first)
+      end
+
+      def sizetype
+        case __size
+          when 0..255
+            Uint8
+          when 256..65535
+            Uint16
+          else
+            Uint32
+        end
       end
 
       alias :__size :size
 
       def size
-        __size.to_i + Uint16.size
+        __size.to_i + sizetype.size
       end
     end
 

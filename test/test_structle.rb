@@ -80,13 +80,13 @@ describe 'Structle' do
       klass = Structle::Binary.define(8, 'C*')
       value = klass.new("foo", 3)
 
-      assert_equal 10, klass.size
+      assert_equal 9, klass.size
 
       io = StringIO.new
       klass.pack(io, value)
 
       io.rewind
-      assert_equal 10, io.read.bytesize
+      assert_equal 9, io.read.bytesize
 
       io.rewind
       obj = klass.unpack(io)
