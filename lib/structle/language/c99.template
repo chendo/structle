@@ -57,22 +57,23 @@
     } #{type enum.name};
 
   - end
-  - structs = Structle.structs(ns)
+  - structs = Structle.structs(ns).select(&:complete?)
   #define #{constant ns, :types} \\
     - structs.each do |struct|
       X(#{constant struct.name}, #{variable struct.name}, #{struct.fields.size})#{struct == structs.last ? '' : ' \\'}
     - end
 
-  #pragma pack(push, 1)
-  - structs.each do |struct|
-    - next if struct.fields.empty?
-    typedef struct #{type struct.name} {
-      - struct.fields.each do |name, type|
-        - field_type name, type
-      - end
-    } #{type struct.name};#{structs.last == struct ? '' : "\n"}
+  - unless structs.empty?
+    #pragma pack(push, 1)
+    - structs.each do |struct|
+      typedef struct #{type struct.name} {
+        - struct.fields.each do |name, type|
+          - field_type name, type
+        - end
+      } #{type struct.name};#{structs.last == struct ? '' : "\n"}
+    - end
+    #pragma pack(pop)
   - end
-  #pragma pack(pop)
 
 - end
 #ifdef __cplusplus
