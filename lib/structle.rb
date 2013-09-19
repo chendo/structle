@@ -27,6 +27,8 @@ module Structle
 
       def pack io, value
         io.write value.nil? ? "\x00" * size : [value].pack(format)
+      rescue TypeError => error
+        raise %q{pack '%s' into format '%s' %s} % [value.inspect, format, error.message]
       end
 
       def unpack io
@@ -150,7 +152,13 @@ module Structle
       end
 
       def pack io, value
-        fields.inject(0){|b, (n, f)| b + f.pack(io, value.public_send(n))}
+        fields.inject(0) do |b, (n, f)|
+          begin
+            b + f.pack(io, value.public_send(n))
+          rescue => error
+            raise %q{Field '%s' %s} % [n, error.message]
+          end
+        end
       end
 
       def unpack io
