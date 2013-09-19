@@ -15,6 +15,11 @@
       uint8_t  #{variable name}[#{type.size}];
   - elsif type < Structle::String
       uint8_t  #{variable name}[#{type.size}];
+  - elsif type < Structle::Binary
+      struct {
+        uint8_t  data[#{type.__size}];
+        uint16_t size;
+      } #{variable name};
   - elsif type < Structle::Bool
       bool     #{variable name};
   - elsif type < Structle::Float

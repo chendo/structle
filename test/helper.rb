@@ -22,6 +22,7 @@ module Ns
 
   class Baz < Structle::Struct
     field :foo, BazEnum
+    field :bar, Structle::Binary, size: 8
   end
 
   module Ns2

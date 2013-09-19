@@ -76,6 +76,33 @@ module Structle
     end
   end
 
+  class Binary < Type
+    attr_reader :data, :size
+
+    class << self
+      def pack io, value
+        io.write value.data.ljust(__size.to_i, "\x00")
+        io.write [value.data.bytesize].pack(Uint16.format)
+      end
+
+      def unpack io
+        new(io.read(__size.to_i), io.read(Uint16.size).unpack(Uint16.format).first)
+      end
+
+      alias :__size :size
+
+      def size
+        __size.to_i + Uint16.size
+      end
+    end
+
+    def initialize data, size
+      @data = data[0..size-1]
+      @size = size
+    end
+  end
+
+
   # TODO: Composite Union and Bitfield types.
 
   # By default Uint16 type is used.

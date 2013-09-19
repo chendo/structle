@@ -74,4 +74,24 @@ describe 'Structle' do
       assert_kind_of Structle::Struct, @it.foo
     end
   end
+
+  describe 'Type' do
+    it 'should pack & unpack Binary types with size field' do
+      klass = Structle::Binary.define(8, 'C*')
+      value = klass.new("foo", 3)
+
+      assert_equal 10, klass.size
+
+      io = StringIO.new
+      klass.pack(io, value)
+
+      io.rewind
+      assert_equal 10, io.read.bytesize
+
+      io.rewind
+      obj = klass.unpack(io)
+      assert_equal 'foo', obj.data
+      assert_equal 3,     obj.size
+    end
+  end
 end
