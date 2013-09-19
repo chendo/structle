@@ -58,12 +58,12 @@
 
   - end
   - structs = Structle.structs(ns).select(&:complete?)
-  #define #{constant ns, :types} \\
-    - structs.each do |struct|
-      X(#{constant struct.name}, #{variable struct.name}, #{struct.fields.size})#{struct == structs.last ? '' : ' \\'}
-    - end
-
   - unless structs.empty?
+    #define #{constant ns, :types} \\
+      - structs.each do |struct|
+        X(#{constant struct.name}, #{variable struct.name}, #{struct.fields.size})#{struct == structs.last ? '' : ' \\'}
+      - end
+
     #pragma pack(push, 1)
     - structs.each do |struct|
       typedef struct #{type struct.name} {
