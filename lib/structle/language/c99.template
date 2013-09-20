@@ -52,7 +52,7 @@
   - Structle.enums(ns).each do |enum|
     typedef enum #{type enum.name} {
       - enum.values.each do |k, v|
-        #{constant enum.name, k} = #{v},
+        #{constant(enum.namespaced? ? [enum.name, k] : k)} = #{v},
       - end
     } #{type enum.name};
 

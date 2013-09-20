@@ -26,12 +26,13 @@ module Ns
 
   module Ns2
     class BazEnum < Structle::Enum
+      namespaced false
       field Structle::Uint8
       value :FOOBAR
       value :BARBAR
       value :BAZBAR
     end
-
+    p BazEnum.namespaced
     class Baz < Structle::Struct
       field :foo, BazEnum
     end

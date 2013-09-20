@@ -88,7 +88,7 @@ module Structle
     self.size, self.format = 2, 'S<'
 
     class << self
-      attr_accessor :values, :type
+      attr_accessor :values, :type, :namespaced
 
       def [] key
         values[key]
@@ -96,8 +96,9 @@ module Structle
 
       def inherited klass
         Structle.enums << klass if klass.superclass == Enum
-        klass.values = values || {}
-        klass.type   = type || Uint16
+        klass.values     = values || {}
+        klass.type       = type || Uint16
+        klass.namespaced = namespaced
       end
 
       def field type
@@ -110,8 +111,18 @@ module Structle
         name.split('::').map(&:to_sym)[0...-1]
       end
 
-      def value name, value = nil
-        last = values.values.reverse.reject(&:nil?).first
+      def namespaced value = nil
+        @namespaced = true if @namespaced.nil?
+        @namespaced = !!value unless value.nil?
+        @namespaced
+      end
+
+      def namespaced?
+        namespaced
+      end
+
+      def value name, value = nil, options = {}
+        last         = values.values.reverse.reject(&:nil?).first
         values[name] = (value ||= last.nil? ? 0 : last.to_i + 1)
         const_set name, value
       end
