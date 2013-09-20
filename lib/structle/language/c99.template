@@ -61,7 +61,7 @@
   - unless structs.empty?
     #define #{constant ns, :types} \\
       - structs.each do |struct|
-        X(#{constant struct.name}, #{variable struct.name}, #{struct.fields.size})#{struct == structs.last ? '' : ' \\'}
+        X(#{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
       - end
 
     #pragma pack(push, 1)
