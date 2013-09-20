@@ -3,7 +3,7 @@ require 'stringio'
 module Structle
   class << self
     def namespaces
-      @structs.map(&:namespace).uniq
+      [@structs, @enums].flatten.map(&:namespace).uniq
     end
 
     def structs namespace = nil
@@ -26,7 +26,9 @@ module Structle
       end
 
       def pack io, value
-        io.write [value].pack(format)
+        io.write value.nil? ? "\x00" * size : [value].pack(format)
+      rescue TypeError => error
+        raise %q{pack '%s' into format '%s' %s} % [value.inspect, format, error.message]
       end
 
       def unpack io
@@ -51,10 +53,10 @@ module Structle
   class Double < Type; self.size, self.format = 8, 'E'  end
 
   class Bool < Type
-    self.format = 'C'
+    self.size, self.format = 1, 'C'
 
     def self.pack io, value
-      super(value.kind_of?(TrueClass) ? 1 : 0)
+      super(io, value.kind_of?(TrueClass) ? 1 : 0)
     end
 
     def self.unpack io
@@ -68,6 +70,14 @@ module Structle
     end
   end
 
+  class String < Type
+    def self.format
+      'A%d' % size.to_i
+    end
+  end
+
+  # TODO: Composite Union and Bitfield types.
+
   # By default Uint16 type is used.
   #
   # Guessing the size based on values is probably going to fall over on some
@@ -79,6 +89,10 @@ module Structle
 
     class << self
       attr_accessor :values, :type
+
+      def [] key
+        values[key]
+      end
 
       def inherited klass
         Structle.enums << klass if klass.superclass == Enum
@@ -113,35 +127,28 @@ module Structle
       self.class.pack io, self
     end
 
-    def id
-      self.class.id
-    end
-
     class << self
-      attr_accessor :fields, :id
+      attr_accessor :fields
 
       def inherited klass
         Structle.structs << klass if klass.superclass == Struct
         klass.fields = fields || {}  # Suck it 1.8
-        klass.id     = id
+      end
+
+      def complete?
+        !fields.empty?
       end
 
       def size
-        fields.map(&:size).reduce(:+)
+        fields.values.map(&:size).reduce(:+)
       end
 
       def format
         fields.values.map(&:format).join
       end
 
-      def id struct_id = nil
-        @id = struct_id if struct_id
-        @id
-      end
-
       def field name, type, options = {}
         fields[name] = type.define(options.fetch(:size, type.size), options.fetch(:format, type.format), options)
-        define_singleton_method(name, lambda{ fields[name] })
         attr_accessor name
       end
 
@@ -150,13 +157,18 @@ module Structle
       end
 
       def pack io, value
-        fields.inject(0){|b, (n, f)| b + f.pack(io, value.public_send(n))}
+        fields.inject(0) do |b, (n, f)|
+          begin
+            b + f.pack(io, value.public_send(n))
+          rescue => error
+            raise %q{Field '%s' %s} % [n, error.message]
+          end
+        end
       end
 
       def unpack io
-        fields.inject(new){|s, (n, f)| s.public_send("#{n}=", f.unpack(io)); s}
+        new fields.each_with_object({}){|(n, f), h| h[n] = f.unpack(io)}
       end
     end
   end
 end
-

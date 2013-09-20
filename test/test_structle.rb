@@ -62,11 +62,11 @@ describe 'Structle' do
 
     it 'should have namespace' do
       assert_equal :Ns, Ns::Foo.namespace.first
-      assert_equal :Ns, Ns::Bar.foo.namespace.first
+      assert_equal :Ns, Ns::Bar.fields[:foo].namespace.first
     end
 
     it 'should have name' do
-      assert_equal 'Ns::Foo', Ns::Bar.foo.name
+      assert_equal 'Ns::Foo', Ns::Bar.fields[:foo].name
     end
 
     it 'should be kind of' do

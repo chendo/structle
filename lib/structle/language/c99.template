@@ -13,6 +13,8 @@
 - def field_type name, type
   - if type    < Structle::Bytes
       uint8_t  #{variable name}[#{type.size}];
+  - elsif type < Structle::String
+      uint8_t  #{variable name}[#{type.size}];
   - elsif type < Structle::Bool
       bool     #{variable name};
   - elsif type < Structle::Float
@@ -55,28 +57,24 @@
     } #{type enum.name};
 
   - end
-  - structs = Structle.structs(ns)
-  #define #{constant ns, :types} \\
-    - structs.select(&:id).each do |struct|
-      X(#{struct.id}, #{constant struct.name}, #{variable struct.name})#{struct == structs.last ? '' : ' \\'}
-    - end
-
-  #define X(id, constant, name) constant = id,
-  typedef enum #{type ns, :types} {
-    = constant ns, :types
-  } #{type ns, :types};
-  #undef X
-
-  - structs.each do |struct|
-    #pragma pack(push, 1)
-    typedef struct #{type struct.name} {
-      - struct.fields.each do |name, type|
-        - field_type name, type
+  - structs = Structle.structs(ns).select(&:complete?)
+  - unless structs.empty?
+    #define #{constant ns, :types} \\
+      - structs.each do |struct|
+        X(#{constant struct.name}, #{variable struct.name}, #{struct.fields.size})#{struct == structs.last ? '' : ' \\'}
       - end
-    } #{type struct.name};
-    #pragma pack(pop)
 
+    #pragma pack(push, 1)
+    - structs.each do |struct|
+      typedef struct #{type struct.name} {
+        - struct.fields.each do |name, type|
+          - field_type name, type
+        - end
+      } #{type struct.name};#{structs.last == struct ? '' : "\n"}
+    - end
+    #pragma pack(pop)
   - end
+
 - end
 #ifdef __cplusplus
   }
