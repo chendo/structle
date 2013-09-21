@@ -8,5 +8,5 @@ class Structle::Language::C99 < Structle::Language
 
   language    'c99'
   description 'C99 little-endian.'
-  template    File.join(File.dirname(__FILE__), 'c99.template')
+  template    Structle::Template.load(File.join(File.dirname(__FILE__), 'c99.template'))
 end

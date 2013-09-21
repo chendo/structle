@@ -20,7 +20,7 @@ module Structle
     end
 
     def generate
-      template = Template.load self.class.template
+      template = self.class.template
       template.extend self.class.const_get(:Conventions)
       template.apply Structle
     end
