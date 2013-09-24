@@ -19,7 +19,8 @@ module Structle
 
   class Type
     class << self
-      attr_accessor :size, :format
+      attr_writer :size
+      attr_accessor :format
 
       def define size, format, options = {}
         Class.new(self){ @size, @format = size, format }
@@ -37,6 +38,10 @@ module Structle
 
       def name
         super || superclass.name
+      end
+
+      def size
+        @size.to_i
       end
     end
   end
@@ -151,7 +156,7 @@ module Structle
       end
 
       def size
-        fields.values.map(&:size).reduce(:+)
+        fields.values.map(&:size).reduce(:+).to_i
       end
 
       def format

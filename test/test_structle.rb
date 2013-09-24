@@ -6,7 +6,7 @@ describe 'Structle' do
     @it = Structle
   end
 
-  it 'should have namespacing' do
+  it 'must have namespacing' do
     assert_equal :Ns,     @it.namespaces.first.first
     assert_equal Ns::Foo, @it.structs.first
     assert_equal Ns::Foo, @it.structs([:Ns]).first
@@ -24,12 +24,12 @@ describe 'Structle' do
       @it = Ns::BazEnum
     end
 
-    it 'should have const' do
+    it 'must have const' do
       assert value = @it.const_get(:FOO)
       assert_equal 1, @it.const_get(:BAR)
     end
 
-    it 'should have size and format for type' do
+    it 'must have size and format for type' do
       assert_equal 'C', @it.format
       assert_equal 1,   @it.size
     end
@@ -41,7 +41,7 @@ describe 'Structle' do
       @it = Ns::Bar.new(foo: foo, bar: 64, baz: 'wozza')
     end
 
-    it 'should pack' do
+    it 'must pack' do
       io = StringIO.new
       assert @it.pack(io)
       io.rewind
@@ -51,7 +51,7 @@ describe 'Structle' do
       )
     end
 
-    it 'should unpack' do
+    it 'must unpack' do
       assert_equal 64,        @it.bar
       assert_equal 'wozza',   @it.baz.chomp
       assert_kind_of Ns::Foo, @it.foo
@@ -60,18 +60,23 @@ describe 'Structle' do
       assert_equal 'woot',    @it.foo.baz
     end
 
-    it 'should have namespace' do
+    it 'must have namespace' do
       assert_equal :Ns, Ns::Foo.namespace.first
       assert_equal :Ns, Ns::Bar.fields[:foo].namespace.first
     end
 
-    it 'should have name' do
+    it 'must have name' do
       assert_equal 'Ns::Foo', Ns::Bar.fields[:foo].name
     end
 
-    it 'should be kind of' do
+    it 'must be kind of' do
       assert_kind_of Structle::Struct, @it
       assert_kind_of Structle::Struct, @it.foo
+    end
+
+    it 'must have size' do
+      assert_equal 1, Ns::Ns2::Baz.size
+      assert_equal 0, Ns::Ns2::Empty.size
     end
   end
 end
