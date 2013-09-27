@@ -101,7 +101,7 @@ module Structle
 
       def inherited klass
         Structle.enums << klass if klass.superclass == Enum
-        klass.values     = values || {}
+        klass.values     = values ? values.dup : {}
         klass.type       = type || Uint16
         klass.namespaced = namespaced
       end
@@ -148,7 +148,7 @@ module Structle
 
       def inherited klass
         Structle.structs << klass if klass.superclass == Struct
-        klass.fields = fields || {}  # Suck it 1.8
+        klass.fields = fields ? fields.dup : {}
       end
 
       def complete?

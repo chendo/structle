@@ -32,6 +32,15 @@ describe 'Structle' do
     it 'must have size and format for type' do
       assert_equal 'C', @it.format
       assert_equal 1,   @it.size
+
+    end
+
+    it 'should not inherit fields from subclass' do
+      s0 = Class.new(Structle::Enum)
+      s1 = Class.new(s0) { value :FOO }
+      s2 = Class.new(s1) { value :BAR }
+      assert_equal [:FOO],       s1.values.keys
+      assert_equal [:FOO, :BAR], s2.values.keys
     end
   end
 
@@ -77,6 +86,14 @@ describe 'Structle' do
     it 'must have size' do
       assert_equal 1, Ns::Ns2::Baz.size
       assert_equal 0, Ns::Ns2::Empty.size
+    end
+
+    it 'should not inherit fields from subclass' do
+      s0 = Class.new(Structle::Struct)
+      s1 = Class.new(s0) { field :foo, Structle::Uint8 }
+      s2 = Class.new(s1) { field :bar, Structle::Uint8 }
+      assert_equal [:foo],       s1.fields.keys
+      assert_equal [:foo, :bar], s2.fields.keys
     end
   end
 end
