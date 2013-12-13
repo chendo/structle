@@ -33,6 +33,12 @@ module Ns
     field :uint2, Structle::Uint8, bits: 2
   end
 
+  class Qux < Structle::Struct
+    field :foo, Structle::Uint16
+    field :bits, Bitfield
+    field :bar, Structle::Uint16
+  end
+
   module Ns2
     class BazEnum < Structle::Enum
       namespaced false

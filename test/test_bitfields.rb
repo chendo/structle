@@ -54,6 +54,37 @@ describe 'Bitfields' do
     it 'returns the integer on the right bound' do
       assert_equal 0b011101, subject.uint_at_range(data, Structle::Uint16, 3, 6)
     end
+  end
 
+  describe 'inside a struct' do
+    let(:struct) do
+      Ns::Qux.new(foo: 12345, bar: 128).tap do |instance|
+        instance.bits = Ns::Bitfield.new
+        instance.bits.uint12 = 127
+        instance.bits.bool = true
+        instance.bits.bool2 = false
+        instance.bits.uint2 = 1
+      end
+    end
+
+    let(:output) do
+      struct.pack(io)
+      io.rewind
+      io.read.force_encoding(Encoding::BINARY)
+    end
+
+    it 'packs into 6 bytes' do
+      assert_equal 6, output.length
+    end
+
+    it 'can be unpacked' do
+      unpacked = Ns::Qux.unpack(StringIO.new(output))
+      assert_equal 12345, unpacked.foo
+      assert_equal 128, unpacked.bar
+      assert_equal 127, unpacked.bits.uint12
+      assert_equal true, unpacked.bits.bool
+      assert_equal false, unpacked.bits.bool2
+      assert_equal 1, unpacked.bits.uint2
+    end
   end
 end
