@@ -1,4 +1,5 @@
 require 'structle'
+require 'minitest/autorun'
 
 module Ns
   class Foo < Structle::Struct
@@ -22,6 +23,14 @@ module Ns
 
   class Baz < Structle::Struct
     field :foo, BazEnum
+  end
+
+  class Bitfield < Structle::Bitfield
+    type Structle::Uint16
+    field :uint12, Structle::Uint16, bits: 12
+    field :bool, Structle::Bool, bits: 1
+    field :bool2, Structle::Bool, bits: 1
+    field :uint2, Structle::Uint8, bits: 2
   end
 
   module Ns2
