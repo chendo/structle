@@ -20,20 +20,28 @@ module Structle
   class Type
     class << self
       attr_writer :size
-      attr_accessor :format
+      attr_accessor :format, :options
 
       def define size, format, options = {}
-        Class.new(self){ @size, @format = size, format }
+        Class.new(self){ @size, @format, @options = size, format, options }
       end
 
       def pack io, value
-        io.write value.nil? ? "\x00" * size : [value].pack(format)
+        io.write pack_str(value)
       rescue TypeError => error
         raise %q{pack '%s' into format '%s' %s} % [value.inspect, format, error.message]
       end
 
+      def pack_str(value)
+        value.nil? ? "\x00" * size : [value].pack(format)
+      end
+
       def unpack io
-        io.read(size).unpack(format).first
+        unpack_str(io.read(size))
+      end
+
+      def unpack_str(str)
+        str.unpack(format).first
       end
 
       def name
@@ -89,6 +97,85 @@ module Structle
   # compilers. Use field with a Structle::Type numeric type.
   #--
   # TODO: Type checking? Automatic size guessing?
+
+  class Bitfield < Type
+    def initialize(attrs = {})
+      attrs.each{|k, v| public_send("#{k}=", v)}
+    end
+
+    def pack(io)
+      self.class.pack(io, self)
+    end
+
+    class << self
+      attr_accessor :fields
+
+      def type(klass)
+        @type = klass
+      end
+
+      def size
+        @type.size
+      end
+
+      def field(name, type, options = {})
+        @fields ||= {}
+        @fields[name] = {type: type, options: options}
+        attr_accessor name
+      end
+
+      def inherited klass
+        Structle.enums << klass if klass.superclass == Bitfield
+        klass.type(@type || Uint16)
+        klass.fields = fields
+      end
+
+      # FIXME: This is horrible because I have no idea what I'm doing
+      # Needs to be refactored
+      def pack(io, instance)
+        bits = StringIO.new
+        instance ||= new
+        @fields.each do |field, definition|
+          value = instance.public_send(field)
+          packed = StringIO.new
+          definition[:type].pack(packed, value)
+          packed.rewind
+          packed = packed.read
+          bits << packed.unpack("b#{definition[:options][:bits]}").first
+        end
+        
+        bits.rewind
+        io << [bits.read].pack("b*")
+        bits.pos
+      end
+
+      def unpack(io)
+        data = @type.unpack(io)
+        index = 0
+        instance = new
+        @fields.each do |name, definition|
+          bits = definition[:options][:bits]
+          value_type = definition[:type]
+          raw_value = uint_at_range(data, @type, index, bits)
+          value = value_type.unpack(StringIO.new(value_type.pack_str(raw_value)))
+          instance.send("#{name}=", value)
+          index += bits
+        end
+        instance
+      end
+
+      def uint_at_range(data, type, index, length)
+        total_bits = type.size * 8
+        left_side = data >> index
+        left_side & mask(length)
+      end
+
+      def mask(bits)
+        (1 << bits) - 1
+      end
+    end
+  end
+
   class Enum < Type
     self.size, self.format = 2, 'S<'
 
@@ -147,7 +234,7 @@ module Structle
       attr_accessor :fields
 
       def inherited klass
-        Structle.structs << klass if klass.superclass == Struct
+        Structle.structs << klass if klass.superclass == Struct && klass.namespace != [:Structle]
         klass.fields = fields ? fields.dup : {}
       end
 
@@ -165,7 +252,20 @@ module Structle
 
       def field name, type, options = {}
         fields[name] = type.define(options.fetch(:size, type.size), options.fetch(:format, type.format), options)
-        attr_accessor name
+        if type.ancestors.include?(Bitfield)
+          define_method(name) do
+            if !(v = instance_variable_get("@#{name}"))
+              v = type.new
+              instance_variable_set("@#{name}", v)
+            end
+            v
+          end
+          define_method("#{name}=") do |v|
+            instance_variable_set("@#{name}", v)
+          end
+        else
+          attr_accessor name
+        end
       end
 
       def namespace
@@ -184,6 +284,12 @@ module Structle
 
       def unpack io
         new fields.each_with_object({}){|(n, f), h| h[n] = f.unpack(io)}
+      end
+
+      def delegate(method, target)
+        define_method(method) do |*args|
+          send(target).send(method, *args)
+        end
       end
     end
   end
